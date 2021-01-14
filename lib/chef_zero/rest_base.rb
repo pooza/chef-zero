@@ -2,6 +2,7 @@ require_relative "rest_request"
 require_relative "rest_error_response"
 require_relative "data_store/data_not_found_error"
 require_relative "chef_data/acl_path"
+require "cgi"
 
 module ChefZero
   class RestBase
@@ -77,7 +78,7 @@ module ChefZero
 
     def get_data(request, rest_path = nil, *options)
       rest_path ||= request.rest_path
-      rest_path = rest_path.map { |v| URI.decode(v) }
+      rest_path = rest_path.map { |v| CGI.unescape(v) }
       begin
         data_store.get(rest_path, request)
       rescue DataStore::DataNotFoundError
@@ -284,7 +285,7 @@ module ChefZero
     end
 
     def self.build_uri(base_uri, rest_path)
-      "#{base_uri}/#{rest_path.map { |v| URI.escape(v) }.join("/")}"
+      "#{base_uri}/#{rest_path.map { |v| URI.encode_www_form_component(v) }.join("/")}"
     end
 
     def populate_defaults(request, response)
